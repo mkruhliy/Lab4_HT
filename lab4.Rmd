@@ -1,0 +1,119 @@
+---
+title: "Lab4"
+output:
+  html_document: default
+  pdf_document: default
+date: "2022-12-21"
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+Team:
+- Bilinskyi Andrii
+- Markiyan Kruhliy
+- Mokrytskyi Liubomyr
+
+
+```{r}
+require(BSDA)
+library(BSDA)
+require(EnvStats)   
+library(EnvStats)
+```
+
+The data for problems 1--3 are generated as follows: set ak := {k ln
+(k2n + π)}, k ≥ 1
+
+xk = Φ−1 (ak), k = 1, . . . , 100, yl = Φ−1 (al+100), l = 1, . . . , 50
+
+```{r}
+id <- 11
+set.seed(id)
+
+a.data <- c()
+
+
+a_k_calculate <- function(k) {
+  a <- k * log(k^2 * id + pi)
+  return(a - trunc(a))
+}
+
+
+a.data <- a_k_calculate(1:150)
+
+
+x.data <- qnorm(a.data[1:100])
+y.data <- qnorm(a.data[101:150])
+
+```
+
+```{r}
+a_k_calculate(1)
+```
+
+PROBLEM 1
+
+In this case we need to test H0 : µ1 = µ2 vs. H1 : µ1 ̸= µ2; σ1 = 1; σ2
+= 1
+
+To test mean of two normal distributions with known variance, we use
+Two-sided z-test.
+
+Lets estimate µ1 - µ2:
+
+$C_\alpha= \{(\mathbf x, \mathbf y) : |{\mathbf X}-\overline {\mathbf Y}| \gt c_\alpha \}$
+
+$Z = Z(\mathbf X,\mathbf Y) := \sqrt{\frac{mn}{(m+n)}} \frac{\overline{\mathbf x} - \overline{\mathbf y}}{\sigma}$
+
+$\boxed{\strut\ |z(\mathbf x,\mathbf y)|\ge z_{1-\alpha/2} \ }$
+
+for ${\alpha}=0.05$:
+
+$|z(\mathbf x,\mathbf y)|\ge z_{0.975}$
+
+$H_0$ should be rejected on the significance level 0.05 but p-value of
+the test is 0.1943 so $H_0$ should not be rejected for sure.
+
+```{r}
+z.test(x = x.data, y = y.data, alternative = "two.sided", sigma.x = 1, sigma.y = 1)
+```
+
+Problem 2
+
+Hypothesis:
+$H_0\,: \sigma^2_x = \sigma_y^2 \quad \textrm{vs} \quad H_1\,: \sigma^2_x > \sigma_y^2$
+Here we perform an f tests to compare the variances of two samples from
+populations, by dividing them.
+
+The rejection region is:
+$C_\alpha := \{ \mathbf x\in\mathbb R^n,\mathbf y\in\mathbb R^m \mid f(\mathbf x,\mathbf y)\le f_{\alpha} \}$
+where $f_{\alpha}$ is the quantile of level ${\alpha}$ for the Fischer
+distribution $\mathscr{F}_{n-1,m-1}$ and ${\alpha}=0.05$.
+
+p-value of is equals 0.7434 so $H_0$ should not be rejected.
+
+```{r}
+var.test(x = x.data, y = y.data, alternative = "g");
+```
+
+PROBLEM 3
+
+$H_0$: $\{x_k\}^{100}_1$ are normally distributed vs. $H_1$:
+$\{x_k\}^{100}_1$ aren't normally distributed To test hypothetical
+distribution we should use Kolmogorov's Goodness-of-fit test. By LLN if
+sample cdf $\hat{F}_x$ is close to cdf of normal distribution then our
+statistics $d = \sup_{t\in R}|\hat{F}_x(t)-Ф(t)|$ should take small
+values. Here rejection region
+$C_\alpha = \{x\in R| d\ge d_{1-\alpha}^{(n)}\}$
+
+As p-value usually equals to 0.1-0.9 (it changes because normal
+distributed sample changes), our first type error is small enough, so we
+should accept $H_0$ hypothesis.
+
+```{r}
+var.test(x.data, y.data, alternative = "g")
+ks.test(x.data, "pnorm", mean = mean(x.data), sd = sd(x.data))
+ks.test(abs(x.data), "pexp", 1)
+ks.test(x.data, y.data)
+```
